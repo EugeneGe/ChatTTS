@@ -175,12 +175,10 @@ def generate_audio(
         spk_emb_text: str,  # 说话人嵌入（用于控制音色）
         stream,  # 是否以流式方式返回音频
         audio_seed_input,  # 设定随机种子，保证音频一致性
-        sample_text_input,  # 参考文本示例（用于风格匹配）
-        sample_audio_code_input,  # 参考音频编码（用于风格匹配）
         split_batch,  # 是否拆分文本进行生成（适用于长文本）
 ):
     global chat  # 使用全局 chat 实例进行语音推理
-    print(text,temperature,top_P,top_K,spk_emb_text,stream,audio_seed_input,sample_text_input,sample_audio_code_input,split_batch)
+    print(text,temperature,top_P,top_K,spk_emb_text,stream,audio_seed_input,split_batch)
     # 1. 检查输入是否合法
     # - 如果文本为空，或者说话人嵌入不以 "蘁淰" 开头（说明无效），直接返回 None
     if not text or not spk_emb_text.startswith("蘁淰"):
@@ -196,11 +194,6 @@ def generate_audio(
     )
 
     # 3. 如果提供了示例文本和示例音频编码，则使用它们进行风格匹配
-    if sample_text_input and sample_audio_code_input:
-        params_infer_code.txt_smp = sample_text_input  # 设定参考文本
-        params_infer_code.spk_smp = sample_audio_code_input  # 设定参考音频编码
-        params_infer_code.spk_emb = None  # 取消原始的说话人嵌入，优先使用参考示例
-
     # 4. 调用 chat 进行语音生成
     wav = chat.infer(
         text,  # 输入文本

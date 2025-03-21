@@ -42,17 +42,14 @@ def main():
             with gr.Column(scale=2):
                 text_input = gr.Textbox(label="输入文本", lines=4, max_lines=4, placeholder="请输入文本...",
                                         value=ex[0][0], interactive=True, )
-                sample_text_input = gr.Textbox(label="示例文本", lines=4, max_lines=4,
-                                               placeholder="如果有示例音频和示例文本可用，则扬声器嵌入将被禁用。",
-                                               interactive=True, )
-            with gr.Column():
-                with gr.Tab(label="示例音频"):
-                    sample_audio_input = gr.Audio(value=None, type="filepath", interactive=True, show_label=False,
-                                                  waveform_options=gr.WaveformOptions(sample_rate=24000, ), scale=1, )
-                with gr.Tab(label="示例音频编码"):
-                    sample_audio_code_input = gr.Textbox(lines=12, max_lines=12, show_label=False,
-                                                         placeholder="上传示例音频后，粘贴之前复制的代码。",
-                                                         interactive=True, )
+        with gr.Row():
+            text_seed_input = gr.Number(value=ex[0][5], label="文本种子", interactive=True, minimum=seed_min,
+                                        maximum=seed_max, )
+            generate_text_seed = gr.Button("\U0001f3b2", interactive=True)
+            generate_text_button = gr.Button("生成文本", scale=1, variant="primary", interactive=True)
+            interrupt_text_button = gr.Button("终止", scale=1, variant="stop", visible=False, interactive=False, )
+
+        text_output = gr.Textbox(label="输出文本", interactive=True, show_copy_button=True)
 
         with gr.Row():
             refine_text_checkbox = gr.Checkbox(label="Refine text", value=ex[0][6], interactive=True)
@@ -67,9 +64,6 @@ def main():
             audio_seed_input = gr.Number(value=ex[0][4], label="音频种子", interactive=True, minimum=seed_min,
                                          maximum=seed_max, )
             generate_audio_seed = gr.Button("\U0001f3b2", interactive=True)
-            text_seed_input = gr.Number(value=ex[0][5], label="文本种子", interactive=True, minimum=seed_min,
-                                        maximum=seed_max, )
-            generate_text_seed = gr.Button("\U0001f3b2", interactive=True)
 
         with gr.Row():
             spk_emb_text = gr.Textbox(label="说话人嵌入", max_lines=3, show_copy_button=True, interactive=True,
@@ -83,15 +77,9 @@ def main():
             stream_mode_checkbox = gr.Checkbox(label="流模式", value=False, scale=1, interactive=True, )
             split_batch_slider = gr.Slider(minimum=0, maximum=100, step=1, value=4, label="Split Batch",
                                            interactive=True, )
-            generate_text_button = gr.Button("生成文本", scale=1, variant="primary", interactive=True)
-            interrupt_text_button = gr.Button("终止", scale=1, variant="stop", visible=False, interactive=False, )
+
             generate_audio_button = gr.Button("生成语音", scale=1, variant="primary", interactive=True)
             interrupt_audio_button = gr.Button("终止", scale=1, variant="stop", visible=False, interactive=False, )
-
-        text_output = gr.Textbox(label="输出文本", interactive=True, show_copy_button=True)
-
-        sample_audio_input.change(fn=on_upload_sample_audio, inputs=sample_audio_input, outputs=sample_audio_code_input,
-                                  ).then(fn=lambda: gr.Info("在另一个选项卡上生成的采样音频代码。"))
 
         # 使用Gradio的回调功能来更新数值输入框
         voice_selection.change(fn=on_voice_change, inputs=voice_selection, outputs=audio_seed_input)
@@ -157,8 +145,6 @@ def main():
                     spk_emb_text,
                     stream_mode_checkbox,
                     audio_seed_input,
-                    sample_text_input,
-                    sample_audio_code_input,
                     split_batch_slider,
                 ],
                 outputs=audio_output,
@@ -168,18 +154,6 @@ def main():
                 outputs=[generate_audio_button, interrupt_audio_button],
             )
 
-        gr.Examples(
-            examples=ex,
-            inputs=[
-                text_input,
-                temperature_slider,
-                top_p_slider,
-                top_k_slider,
-                audio_seed_input,
-                text_seed_input,
-                refine_text_checkbox,
-            ],
-        )
 
     args = parse_arguments()
     if not load_models(args):
