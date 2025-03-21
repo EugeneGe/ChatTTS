@@ -32,11 +32,11 @@ seed_max = 4294967295
 
 use_mp3 = has_ffmpeg_installed()
 if not use_mp3:
-    logger.warning("no ffmpeg installed, use wav file output")
+    logger.warning("没有安装 ffmpeg，使用 wav 文件输出")
 
-# 音色选项：用于预置合适的音色
+# 音色选项：用于预置合适的音色 TODO 如果想要自定义音色，需要录音使用其他方式匹配，获取音色，放入下面选项中
 voices = {
-    "Default": {"seed": 2},
+    "默认": {"seed": 2},
     "Timbre1": {"seed": 1111},
     "Timbre2": {"seed": 2222},
     "Timbre3": {"seed": 3333},
@@ -143,7 +143,7 @@ def refine_text(
         split_batch,  # 是否拆分文本进行优化（大于 0 表示拆分）
 ):
     global chat  # 使用全局 chat 对象进行推理
-
+    print(text,text_seed_input,refine_text_flag,temperature,top_P,top_K,split_batch)
     # 如果不启用文本优化，则直接返回原始文本
     if not refine_text_flag:
         sleep(1)  # 休眠 1 秒，防止 UI 加载标记过快消失
@@ -180,7 +180,7 @@ def generate_audio(
         split_batch,  # 是否拆分文本进行生成（适用于长文本）
 ):
     global chat  # 使用全局 chat 实例进行语音推理
-
+    print(text,temperature,top_P,top_K,spk_emb_text,stream,audio_seed_input,sample_text_input,sample_audio_code_input,split_batch)
     # 1. 检查输入是否合法
     # - 如果文本为空，或者说话人嵌入不以 "蘁淰" 开头（说明无效），直接返回 None
     if not text or not spk_emb_text.startswith("蘁淰"):

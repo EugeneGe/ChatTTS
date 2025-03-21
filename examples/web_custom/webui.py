@@ -7,7 +7,7 @@ sys.path.append(now_dir)
 
 import argparse
 import gradio as gr
-from custom_funcs import *
+from funcs import *
 from ex import ex
 
 
@@ -17,7 +17,7 @@ def parse_arguments():
     parser.add_argument(
         "--server_name", type=str, default="0.0.0.0", help="server name"
     )
-    parser.add_argument("--server_port", type=int, default=8080, help="server port")
+    parser.add_argument("--server_port", type=int, default=8081, help="server port")
     parser.add_argument("--root_path", type=str, help="root path")
     parser.add_argument("--custom_path", type=str, help="custom model path")
     parser.add_argument("--coef", type=str, help="custom dvae coefficient")
@@ -40,47 +40,47 @@ def main():
 
         with gr.Row():
             with gr.Column(scale=2):
-                text_input = gr.Textbox(label="Input Text", lines=4, max_lines=4, placeholder="Please Input Text...",
+                text_input = gr.Textbox(label="输入文本", lines=4, max_lines=4, placeholder="请输入文本...",
                                         value=ex[0][0], interactive=True, )
-                sample_text_input = gr.Textbox(label="Sample Text", lines=4, max_lines=4,
-                                               placeholder="If Sample Audio and Sample Text are available, the Speaker Embedding will be disabled.",
+                sample_text_input = gr.Textbox(label="示例文本", lines=4, max_lines=4,
+                                               placeholder="如果有示例音频和示例文本可用，则扬声器嵌入将被禁用。",
                                                interactive=True, )
             with gr.Column():
-                with gr.Tab(label="Sample Audio"):
+                with gr.Tab(label="示例音频"):
                     sample_audio_input = gr.Audio(value=None, type="filepath", interactive=True, show_label=False,
                                                   waveform_options=gr.WaveformOptions(sample_rate=24000, ), scale=1, )
-                with gr.Tab(label="Sample Audio Code"):
+                with gr.Tab(label="示例音频编码"):
                     sample_audio_code_input = gr.Textbox(lines=12, max_lines=12, show_label=False,
-                                                         placeholder="Paste the Code copied before after uploading Sample Audio.",
+                                                         placeholder="上传示例音频后，粘贴之前复制的代码。",
                                                          interactive=True, )
 
         with gr.Row():
             refine_text_checkbox = gr.Checkbox(label="Refine text", value=ex[0][6], interactive=True)
             temperature_slider = gr.Slider(minimum=0.00001, maximum=1.0, step=0.00001, value=ex[0][1],
-                                           label="Audio Temperature", interactive=True, )
+                                           label="Temperature", interactive=True, )
             top_p_slider = gr.Slider(minimum=0.1, maximum=0.9, step=0.05, value=ex[0][2], label="top_P",
                                      interactive=True, )
             top_k_slider = gr.Slider(minimum=1, maximum=20, step=1, value=ex[0][3], label="top_K", interactive=True, )
 
         with gr.Row():
-            voice_selection = gr.Dropdown(label="Timbre", choices=voices.keys(), value="Default", interactive=True, )
-            audio_seed_input = gr.Number(value=ex[0][4], label="Audio Seed", interactive=True, minimum=seed_min,
+            voice_selection = gr.Dropdown(label="音色", choices=voices.keys(), value="默认", interactive=True, )
+            audio_seed_input = gr.Number(value=ex[0][4], label="音频种子", interactive=True, minimum=seed_min,
                                          maximum=seed_max, )
             generate_audio_seed = gr.Button("\U0001f3b2", interactive=True)
-            text_seed_input = gr.Number(value=ex[0][5], label="Text Seed", interactive=True, minimum=seed_min,
+            text_seed_input = gr.Number(value=ex[0][5], label="文本种子", interactive=True, minimum=seed_min,
                                         maximum=seed_max, )
             generate_text_seed = gr.Button("\U0001f3b2", interactive=True)
 
         with gr.Row():
-            spk_emb_text = gr.Textbox(label="Speaker Embedding", max_lines=3, show_copy_button=True, interactive=True,
+            spk_emb_text = gr.Textbox(label="说话人嵌入", max_lines=3, show_copy_button=True, interactive=True,
                                       scale=2, )
-            dvae_coef_text = gr.Textbox(label="DVAE Coefficient", max_lines=3, show_copy_button=True, interactive=True,
+            dvae_coef_text = gr.Textbox(label="DVAE 系数", max_lines=3, show_copy_button=True, interactive=True,
                                         scale=2, )
-            reload_chat_button = gr.Button("Reload", scale=1, interactive=True)
+            reload_chat_button = gr.Button("重新加载", scale=1, interactive=True)
 
         with gr.Row():
-            auto_play_checkbox = gr.Checkbox(label="Auto Play", value=False, scale=1, interactive=True)
-            stream_mode_checkbox = gr.Checkbox(label="Stream Mode", value=False, scale=1, interactive=True, )
+            auto_play_checkbox = gr.Checkbox(label="自动播放", value=False, scale=1, interactive=True)
+            stream_mode_checkbox = gr.Checkbox(label="流模式", value=False, scale=1, interactive=True, )
             split_batch_slider = gr.Slider(minimum=0, maximum=100, step=1, value=4, label="Split Batch",
                                            interactive=True, )
             generate_text_button = gr.Button("生成文本", scale=1, variant="primary", interactive=True)
@@ -91,7 +91,7 @@ def main():
         text_output = gr.Textbox(label="输出文本", interactive=True, show_copy_button=True)
 
         sample_audio_input.change(fn=on_upload_sample_audio, inputs=sample_audio_input, outputs=sample_audio_code_input,
-                                  ).then(fn=lambda: gr.Info("Sampled Audio Code generated at another Tab."))
+                                  ).then(fn=lambda: gr.Info("在另一个选项卡上生成的采样音频代码。"))
 
         # 使用Gradio的回调功能来更新数值输入框
         voice_selection.change(fn=on_voice_change, inputs=voice_selection, outputs=audio_seed_input)
@@ -109,7 +109,7 @@ def main():
         @gr.render(inputs=[auto_play_checkbox, stream_mode_checkbox])
         def make_audio(autoplay, stream):
             audio_output = gr.Audio(
-                label="Output Audio",
+                label="输出音频",
                 value=None,
                 format="mp3" if use_mp3 and not stream else "wav",
                 autoplay=autoplay,
