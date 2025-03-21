@@ -7,7 +7,7 @@ sys.path.append(now_dir)
 
 import argparse
 import gradio as gr
-from funcs import *
+from custom_funcs import *
 from ex import ex
 
 
@@ -83,10 +83,10 @@ def main():
             stream_mode_checkbox = gr.Checkbox(label="Stream Mode", value=False, scale=1, interactive=True, )
             split_batch_slider = gr.Slider(minimum=0, maximum=100, step=1, value=4, label="Split Batch",
                                            interactive=True, )
-            generate_button = gr.Button("Generate", scale=2, variant="primary", interactive=True)
-            interrupt_button = gr.Button("Interrupt", scale=2, variant="stop", visible=False, interactive=False, )
             generate_text_button = gr.Button("生成文本", scale=1, variant="primary", interactive=True)
             interrupt_text_button = gr.Button("终止", scale=1, variant="stop", visible=False, interactive=False, )
+            generate_audio_button = gr.Button("生成语音", scale=1, variant="primary", interactive=True)
+            interrupt_audio_button = gr.Button("终止", scale=1, variant="stop", visible=False, interactive=False, )
 
         text_output = gr.Textbox(label="输出文本", interactive=True, show_copy_button=True)
 
@@ -100,11 +100,11 @@ def main():
         generate_text_seed.click(generate_seed, outputs=text_seed_input)
         audio_seed_input.change(on_audio_seed_change, inputs=audio_seed_input, outputs=spk_emb_text)
         reload_chat_button.click(reload_chat, inputs=dvae_coef_text, outputs=dvae_coef_text)
-        interrupt_button.click(interrupt_generate)
         interrupt_text_button.click(fn=interrupt_generate_text).then(
             fn=set_buttons_after_generate_text,
-            outputs=[generate_text_button, interrupt_text_button] # TODO 并未将文本输出框置空
+            outputs=[generate_text_button, interrupt_text_button]  # TODO 并未将文本输出框置空
         )
+        interrupt_audio_button.click(interrupt_generate_audio)
 
         @gr.render(inputs=[auto_play_checkbox, stream_mode_checkbox])
         def make_audio(autoplay, stream):
@@ -119,42 +119,6 @@ def main():
                 waveform_options=gr.WaveformOptions(
                     sample_rate=24000,
                 ),
-            )
-            generate_button.click(
-                fn=set_buttons_before_generate,
-                inputs=[generate_button, interrupt_button],
-                outputs=[generate_button, interrupt_button],
-            ).then(
-                refine_text,
-                inputs=[
-                    text_input,
-                    text_seed_input,
-                    refine_text_checkbox,
-                    temperature_slider,
-                    top_p_slider,
-                    top_k_slider,
-                    split_batch_slider,
-                ],
-                outputs=text_output,
-            ).then(
-                generate_audio,
-                inputs=[
-                    text_output,
-                    temperature_slider,
-                    top_p_slider,
-                    top_k_slider,
-                    spk_emb_text,
-                    stream_mode_checkbox,
-                    audio_seed_input,
-                    sample_text_input,
-                    sample_audio_code_input,
-                    split_batch_slider,
-                ],
-                outputs=audio_output,
-            ).then(
-                fn=set_buttons_after_generate,
-                inputs=[generate_button, interrupt_button, audio_output],
-                outputs=[generate_button, interrupt_button],
             )
 
             # 仅生成文本
@@ -176,6 +140,32 @@ def main():
             ).then(
                 fn=set_buttons_after_generate_text,  # 去掉 text_output 参数
                 outputs=[generate_text_button, interrupt_text_button],
+            )
+
+            # 生成语音
+            generate_audio_button.click(
+                fn=set_buttons_before_generate_audio,
+                inputs=[generate_audio_button, interrupt_audio_button],
+                outputs=[generate_audio_button, interrupt_audio_button],
+            ).then(
+                generate_audio,
+                inputs=[
+                    text_output,
+                    temperature_slider,
+                    top_p_slider,
+                    top_k_slider,
+                    spk_emb_text,
+                    stream_mode_checkbox,
+                    audio_seed_input,
+                    sample_text_input,
+                    sample_audio_code_input,
+                    split_batch_slider,
+                ],
+                outputs=audio_output,
+            ).then(
+                fn=set_buttons_after_generate_audio,
+                inputs=[generate_audio_button, interrupt_audio_button, audio_output],
+                outputs=[generate_audio_button, interrupt_audio_button],
             )
 
         gr.Examples(

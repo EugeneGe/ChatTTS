@@ -238,35 +238,3 @@ def set_buttons_after_generate(generate_button, interrupt_button, audio_output):
         interrupt_button,
         audio_output is not None or has_interrupted,
     )
-
-
-has_interrupted_text = False
-is_in_generate_text = False
-
-
-def _set_generate_text_buttons(is_generating):
-    """更新按钮状态"""
-    return gr.update(visible=not is_generating, interactive=not is_generating), \
-        gr.update(visible=is_generating, interactive=is_generating)
-
-
-def interrupt_generate_text():
-    """终止文本生成"""
-    global chat, has_interrupted_text
-    has_interrupted_text = True
-    chat.interrupt()
-
-
-def set_buttons_before_generate_text():
-    """开始生成文本前，更新按钮状态"""
-    global has_interrupted_text, is_in_generate_text
-    has_interrupted_text = False
-    is_in_generate_text = True
-    return _set_generate_text_buttons(is_generating=True)
-
-
-def set_buttons_after_generate_text():
-    """文本生成完成或被终止后，更新按钮状态"""
-    global has_interrupted_text, is_in_generate_text
-    is_in_generate_text = False
-    return _set_generate_text_buttons(is_generating=False)
