@@ -57,9 +57,9 @@ def on_voice_change(vocie_selection):
 
 
 def on_audio_seed_change(audio_seed_input):
-    with TorchSeedContext(audio_seed_input):
-        rand_spk = chat.sample_random_speaker()
-    return rand_spk
+    with TorchSeedContext(audio_seed_input):  # 进入种子上下文，设置 torch 的随机种子
+        rand_spk = chat.sample_random_speaker()  # 生成随机 speaker
+    return rand_spk  # 返回 speaker
 
 
 def load_chat(cust_path: Optional[str], coef: Optional[str]) -> bool:
@@ -131,13 +131,13 @@ def _set_generate_buttons(generate_button, interrupt_button, is_reset=False):
 
 
 def refine_text(
-    text,
-    text_seed_input,
-    refine_text_flag,
-    temperature,
-    top_P,
-    top_K,
-    split_batch,
+        text,
+        text_seed_input,
+        refine_text_flag,
+        temperature,
+        top_P,
+        top_K,
+        split_batch,
 ):
     global chat
 
@@ -162,16 +162,16 @@ def refine_text(
 
 
 def generate_audio(
-    text,
-    temperature,
-    top_P,
-    top_K,
-    spk_emb_text: str,
-    stream,
-    audio_seed_input,
-    sample_text_input,
-    sample_audio_code_input,
-    split_batch,
+        text,
+        temperature,
+        top_P,
+        top_K,
+        spk_emb_text: str,
+        stream,
+        audio_seed_input,
+        sample_text_input,
+        sample_audio_code_input,
+        split_batch,
 ):
     global chat, has_interrupted
 
@@ -238,3 +238,35 @@ def set_buttons_after_generate(generate_button, interrupt_button, audio_output):
         interrupt_button,
         audio_output is not None or has_interrupted,
     )
+
+
+has_interrupted_text = False
+is_in_generate_text = False
+
+
+def _set_generate_text_buttons(is_generating):
+    """更新按钮状态"""
+    return gr.update(visible=not is_generating, interactive=not is_generating), \
+        gr.update(visible=is_generating, interactive=is_generating)
+
+
+def interrupt_generate_text():
+    """终止文本生成"""
+    global chat, has_interrupted_text
+    has_interrupted_text = True
+    chat.interrupt()
+
+
+def set_buttons_before_generate_text():
+    """开始生成文本前，更新按钮状态"""
+    global has_interrupted_text, is_in_generate_text
+    has_interrupted_text = False
+    is_in_generate_text = True
+    return _set_generate_text_buttons(is_generating=True)
+
+
+def set_buttons_after_generate_text():
+    """文本生成完成或被终止后，更新按钮状态"""
+    global has_interrupted_text, is_in_generate_text
+    is_in_generate_text = False
+    return _set_generate_text_buttons(is_generating=False)
