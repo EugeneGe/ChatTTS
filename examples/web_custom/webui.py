@@ -42,6 +42,12 @@ def main():
             with gr.Column(scale=2):
                 text_input = gr.Textbox(label="输入文本", lines=4, max_lines=4, placeholder="请输入文本...",
                                         value=ex[0][0], interactive=True, )
+
+        with gr.Row():
+            break_selection = gr.Dropdown(label="停顿词", choices=break_list.keys(), value="[break_2]", interactive=True, )
+            laugh_selection = gr.Dropdown(label="笑声", choices=laugh_list.keys(), value="[laugh_2]", interactive=True, )
+            oral_selection = gr.Dropdown(label="口头语", choices=oral_list.keys(), value="[oral_0]", interactive=True, )
+
         with gr.Row():
             text_seed_input = gr.Number(value=ex[0][5], label="文本种子", interactive=True, minimum=seed_min,
                                         maximum=seed_max, )
@@ -55,6 +61,7 @@ def main():
             refine_text_checkbox = gr.Checkbox(label="Refine text", value=ex[0][6], interactive=True)
             temperature_slider = gr.Slider(minimum=0.00001, maximum=1.0, step=0.00001, value=ex[0][1],
                                            label="Temperature", interactive=True, )
+            speed_selection = gr.Dropdown(label="语速", choices=speed_list.keys(), value="[speed_5]", interactive=True, )
             top_p_slider = gr.Slider(minimum=0.1, maximum=0.9, step=0.05, value=ex[0][2], label="top_P",
                                      interactive=True, )
             top_k_slider = gr.Slider(minimum=1, maximum=20, step=1, value=ex[0][3], label="top_K", interactive=True, )
@@ -123,6 +130,9 @@ def main():
                     top_p_slider,
                     top_k_slider,
                     split_batch_slider,
+                    break_selection,
+                    laugh_selection,
+                    oral_selection,
                 ],
                 outputs=text_output,
             ).then(
@@ -146,6 +156,7 @@ def main():
                     stream_mode_checkbox,
                     audio_seed_input,
                     split_batch_slider,
+                    speed_selection,
                 ],
                 outputs=audio_output,
             ).then(

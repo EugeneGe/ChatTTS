@@ -47,6 +47,18 @@ voices = {
     "Timbre9": {"seed": 9999},
 }
 
+# 语速字典，从慢到快分为10个等级
+speed_list = {f"[speed_{i}]": i for i in range(10)}
+
+# 停顿词字典，从慢到快分为10个等级
+break_list = {f"[break_{i}]": i for i in range(10)}
+
+# 笑声字典，从慢到快分为10个等级
+laugh_list = {f"[laugh_{i}]": i for i in range(10)}
+
+# 口头字典，从慢到快分为10个等级
+oral_list = {f"[oral_{i}]": i for i in range(10)}
+
 
 def generate_seed():
     return gr.update(value=random.randint(seed_min, seed_max))
@@ -140,9 +152,13 @@ def refine_text(
         top_P,  # 采样时使用的 top-p (核采样) 参数
         top_K,  # 采样时使用的 top-k 参数
         split_batch,  # 是否拆分文本进行优化（大于 0 表示拆分）
+        break_selection, # 停顿词
+        laugh_selection, # 笑声
+        oral_selection,  # 口头语
 ):
     global chat  # 使用全局 chat 对象进行推理
-    print(text,text_seed_input,refine_text_flag,temperature,top_P,top_K,split_batch)
+    prompt = f"{break_selection}{laugh_selection}{oral_selection}"
+    print(text,text_seed_input,refine_text_flag,temperature,top_P,top_K,split_batch,prompt)
     # 如果不启用文本优化，则直接返回原始文本
     if not refine_text_flag:
         sleep(1)  # 休眠 1 秒，防止 UI 加载标记过快消失
@@ -158,6 +174,7 @@ def refine_text(
             top_P=top_P,  # 核采样阈值
             top_K=top_K,  # 仅从前 K 个最高概率的 token 中采样
             manual_seed=text_seed_input,  # 设定随机种子，保证可复现性
+            prompt=prompt,  # 停顿词、笑声、口头语
         ),
         split_text=split_batch > 0,  # 是否拆分文本进行优化
     )
@@ -175,6 +192,7 @@ def generate_audio(
         stream,  # 是否以流式方式返回音频
         audio_seed_input,  # 设定随机种子，保证音频一致性
         split_batch,  # 是否拆分文本进行生成（适用于长文本）
+        prompt,  # 语速，从慢到快，共有10个等级[speed_0]~[speed_9]
 ):
     global chat  # 使用全局 chat 实例进行语音推理
     print(text,temperature,top_P,top_K,spk_emb_text,stream,audio_seed_input,split_batch)
@@ -185,6 +203,7 @@ def generate_audio(
 
     # 2. 构造音频生成参数
     params_infer_code = ChatTTS.Chat.InferCodeParams(
+        prompt=prompt, # 语速，从慢到快，共有10个等级[speed_0]~[speed_9]
         spk_emb=spk_emb_text,  # 设定说话人嵌入
         temperature=temperature,  # 影响生成的音频多样性
         top_P=top_P,  # 采样时的核采样参数
